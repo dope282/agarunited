@@ -19,7 +19,8 @@
   /* хажуугийн зай: өргөн дэлгэцэнд текстийг гол руу зөөлөн шахна */
   --gutter: clamp(24px, 6vw, 160px);
 
-  --font-serif: var(--font-bitter), Georgia, "Times New Roman", serif;
+  /* Нэг фонт — бүх текст Manrope */
+  --font-serif: var(--font-manrope), system-ui, -apple-system, sans-serif;
   --font-sans: var(--font-manrope), system-ui, -apple-system, sans-serif;
 }
 

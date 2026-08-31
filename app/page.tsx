@@ -145,7 +145,7 @@ export default function Home() {
           <div className="eyebrow" style={{ color: "var(--blue)" }}>
             Бидний тухай
           </div>
-          <h2>Найман жилийн тасралтгүй өсөлт</h2>
+          <h2>Арван жилийн тасралтгүй өсөлт</h2>
           <p className="about-lead">
             Бид зөвхөн бүтээгдэхүүн нийлүүлдэггүй — аймаг, сум бүрт хүрсэн,
             найдвартай ажилладаг түгээлтийн сүлжээ бүтээсэн.
@@ -157,12 +157,11 @@ export default function Home() {
               className="badge"
               style={{ background: "rgba(238,59,99,.12)", color: "var(--red)" }}
             >
-              01
+              1
             </div>
             <div className="f-title">Албан ёсны нийлүүлэлт</div>
             <div className="f-text">
-              Дэлхийн брэндүүдийн албан ёсны түгээгчээр ажиллаж, бүтээгдэхүүний
-              гарал үүсэл, чанарыг баталгаажуулна.
+              Дэлхийн брэндийг албан ёсны эрхтэйгээр чанар стандартын дагуу зах зээлд нийлүүлж байна.
             </div>
           </div>
           <div className="feature">
@@ -173,12 +172,11 @@ export default function Home() {
                 color: "var(--yellow-dk)",
               }}
             >
-              02
+              2
             </div>
             <div className="f-title">Өрсөлдөхүйц үнэ</div>
             <div className="f-text">
-              Шууд импорт, том хэмжээний нийлүүлэлтийн ачаар зах зээлд хамгийн
-              боломжит үнийг тогтвортой барина.
+              Нийлүүлэлтийн үнийг тогтвортойгоор барьж боломжит үнээр үйлчилнэ
             </div>
           </div>
           <div className="feature">
@@ -189,7 +187,7 @@ export default function Home() {
                 color: "var(--green-dk)",
               }}
             >
-              03
+              3
             </div>
             <div className="f-title">Хаа сайгүй хүрдэг сүлжээ</div>
             <div className="f-text">
@@ -202,7 +200,7 @@ export default function Home() {
               className="badge"
               style={{ background: "rgba(43,134,174,.14)", color: "var(--blue)" }}
             >
-              04
+              4
             </div>
             <div className="f-title">Хамтын ажиллагаа</div>
             <div className="f-text">
