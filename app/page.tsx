@@ -1,21 +1,102 @@
-const brandSlots = Array.from({ length: 12 }, (_, i) => i);
+"use client";
 
-const marqueeItems: Array<[string, string]> = [
-  ["test", "var(--yellow)"],
-  ["test", "var(--green)"],
-  ["test", "var(--red)"],
-  ["test", "var(--blue)"],
-  ["test", "var(--yellow)"],
-  ["test", "var(--green)"],
+import { useEffect, useState, type FormEvent } from "react";
+import { content, type Lang } from "./content";
+
+// public/-д байгаа брэндийн логонууд (brand6 байхгүй)
+const brands = [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18].map(
+  (n) => `/brand${n}.png`,
+);
+
+const marqueeColors = [
+  "var(--yellow)",
+  "var(--green)",
+  "var(--red)",
+  "var(--blue)",
+  "var(--yellow)",
+  "var(--green)",  "var(--yellow)",
+  "var(--green)",
+  "var(--red)",
+  "var(--blue)",
+  "var(--yellow)",
+  "var(--green)",  "var(--yellow)",
+  "var(--green)",
+  "var(--red)",
+  "var(--blue)",
+  "var(--yellow)",
+  "var(--green)",  "var(--yellow)",
+  "var(--green)",
+  "var(--red)",
+  "var(--blue)",
+  "var(--yellow)",
+  "var(--green)",  "var(--yellow)",
+  "var(--green)",
+  "var(--red)",
+  "var(--blue)",
+  "var(--yellow)",
+  "var(--green)",
 ];
 
-function MarqueeGroup({ ariaHidden = false }: { ariaHidden?: boolean }) {
+const featureBadges = [
+  { bg: "rgba(238,59,99,.12)", color: "var(--red)" },
+  { bg: "rgba(251,200,90,.22)", color: "var(--yellow-dk)" },
+  { bg: "rgba(23,199,154,.16)", color: "var(--green-dk)" },
+  { bg: "rgba(43,134,174,.14)", color: "var(--blue)" },
+];
+
+const reachColors = ["var(--yellow)", "var(--green)", "var(--blue)", "var(--red)"];
+const reachNums = ["21", "363", "9", "3500+"];
+const stepColors = ["var(--red)", "var(--yellow)", "var(--green)", "var(--blue)"];
+const stepNumColors = [
+  "var(--red)",
+  "var(--yellow-dk)",
+  "var(--green-dk)",
+  "var(--blue)",
+];
+
+function MarqueeGroup({
+  labels,
+  ariaHidden = false,
+}: {
+  labels: string[];
+  ariaHidden?: boolean;
+}) {
   return (
     <div className="marquee-group" aria-hidden={ariaHidden || undefined}>
-      {marqueeItems.map(([label, color], i) => (
+      {labels.map((label, i) => (
         <span key={i} style={{ display: "contents" }}>
           <span>{label}</span>
-          <span style={{ color }}>✳</span>
+          <span style={{ color: marqueeColors[i] }}>✳</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+const LANGS: Lang[] = ["mn", "en", "ru"];
+
+function LangSwitch({
+  lang,
+  setLang,
+  className = "",
+}: {
+  lang: Lang;
+  setLang: (l: Lang) => void;
+  className?: string;
+}) {
+  return (
+    <div className={`lang-switch ${className}`.trim()}>
+      {LANGS.map((l, i) => (
+        <span key={l} style={{ display: "contents" }}>
+          {i > 0 && <span className="sep">/</span>}
+          <button
+            type="button"
+            className={lang === l ? "active" : ""}
+            aria-pressed={lang === l}
+            onClick={() => setLang(l)}
+          >
+            {l.toUpperCase()}
+          </button>
         </span>
       ))}
     </div>
@@ -23,6 +104,56 @@ function MarqueeGroup({ ariaHidden = false }: { ariaHidden?: boolean }) {
 }
 
 export default function Home() {
+  const [lang, setLang] = useState<Lang>("mn");
+  const [hydrated, setHydrated] = useState(false);
+
+  // хадгалсан сонголтыг эхний ачаалалд унших
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("au-lang");
+      if (saved && (LANGS as string[]).includes(saved)) setLang(saved as Lang);
+    } catch {}
+    setHydrated(true);
+  }, []);
+
+  // унших дуустал бичихгүй (эхний бичилт хадгалсан утгыг дарахаас сэргийлнэ)
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem("au-lang", lang);
+    } catch {}
+    document.documentElement.lang = lang;
+  }, [lang, hydrated]);
+
+  const t = content[lang];
+
+  const [form, setForm] = useState({
+    company: "",
+    region: "",
+    phone: "",
+    details: "",
+  });
+
+  // Форм илгээх — mailto-оор info@agarunited.mn руу мэдээлэл орсон захиа нээнэ
+  const handleContactSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const subject = `${t.nav.partner} — ${form.company || t.contact.submit}`;
+    const body = [
+      `${t.contact.phCompany}: ${form.company}`,
+      `${t.contact.phRegion}: ${form.region}`,
+      `${t.contact.phPhone}: ${form.phone}`,
+      "",
+      `${t.contact.phDetails}`,
+      form.details,
+    ].join("\n");
+    window.location.href = `mailto:${t.contact.email}?subject=${encodeURIComponent(
+      subject,
+    )}&body=${encodeURIComponent(body)}`;
+  };
+
+  const telHref = `tel:${t.contact.phone.replace(/[^\d+]/g, "")}`;
+  const mailHref = `mailto:${t.contact.email}`;
+
   return (
     <div className="shell">
       {/* ---------- header ---------- */}
@@ -30,33 +161,33 @@ export default function Home() {
         <div className="logo" role="img" aria-label="Agar United" />
         <nav className="main-nav">
           <a href="#about" className="active">
-            Бидний тухай
+            {t.nav.about}
           </a>
-          <a href="#reach">Хамрах хүрээ</a>
-          <a href="#brands">Бүтээгдэхүүн</a>
-          <a href="#values">Үнэт зүйл</a>
-          <a href="#partner">Хамтран ажиллах</a>
+          <a href="#reach">{t.nav.reach}</a>
+          <a href="#brands">{t.nav.brands}</a>
+          <a href="#values">{t.nav.values}</a>
+          <a href="#partner">{t.nav.partner}</a>
         </nav>
         <div className="header-actions">
-          <span className="lang">MN / EN</span>
+          <LangSwitch lang={lang} setLang={setLang} className="lang" />
           <a href="#contact" className="btn btn-navy">
-            Холбоо барих
+            {t.nav.contact}
             <span className="dot" />
           </a>
           <details className="nav-toggle">
-            <summary className="nav-toggle-btn" aria-label="Цэс">
+            <summary className="nav-toggle-btn" aria-label={t.nav.about}>
               <span className="burger" aria-hidden="true" />
             </summary>
             <nav className="nav-toggle-panel">
-              <a href="#about">Бидний тухай</a>
-              <a href="#reach">Хамрах хүрээ</a>
-              <a href="#brands">Бүтээгдэхүүн</a>
-              <a href="#values">Үнэт зүйл</a>
-              <a href="#partner">Хамтран ажиллах</a>
+              <a href="#about">{t.nav.about}</a>
+              <a href="#reach">{t.nav.reach}</a>
+              <a href="#brands">{t.nav.brands}</a>
+              <a href="#values">{t.nav.values}</a>
+              <a href="#partner">{t.nav.partner}</a>
               <a href="#contact" className="nav-toggle-cta">
-                Холбоо барих
+                {t.nav.contact}
               </a>
-              <span className="nav-toggle-lang">MN / EN</span>
+              <LangSwitch lang={lang} setLang={setLang} className="nav-toggle-lang" />
             </nav>
           </details>
         </div>
@@ -68,64 +199,69 @@ export default function Home() {
           <div className="tag-row">
             <span className="tag-rule" />
             <span className="eyebrow" style={{ color: "var(--red)" }}>
-              2016 оноос хойш
+              {t.hero.badge}
             </span>
           </div>
           <h1>
-            Дэлхийн брэнд
+            {t.hero.h1a}
             <br />
-            бүтээгдэхүүнийг
+            {t.hero.h1b}
             <br />
-            <span className="hl">өрсөлдөхүйц үнээр</span>
+            <span className="hl">{t.hero.h1hl}</span>
           </h1>
-          <p>
-            Агар Юнайтед нь 2016 оноос хойш тасралтгүй хөгжиж, дэлхийн тэргүүлэх
-            брэндүүдийн бүтээгдэхүүнийг Монголын зах зээлд өрсөлдөхүйц үнээр
-            нийлүүлсээр байна.
-          </p>
+          <p>{t.hero.para}</p>
           <div className="hero-cta">
             <a href="#brands" className="btn btn-red">
-              Бүтээгдэхүүн үзэх
+              {t.hero.cta1}
             </a>
-            <a href="#partner" className="btn btn-outline">
-              Гэрээт харилцагч болох
-            </a>
+            {/* <a href="#partner" className="btn btn-outline">
+              {t.hero.cta2}
+            </a> */}
           </div>
           <div className="stat-strip">
             <div className="stat-cell">
               <div className="stat-num">21</div>
-              <div className="stat-label">аймаг</div>
+              <div className="stat-label">{t.hero.statLabels[0]}</div>
             </div>
             <div className="stat-cell">
               <div className="stat-num">363</div>
-              <div className="stat-label">сум</div>
+              <div className="stat-label">{t.hero.statLabels[1]}</div>
             </div>
             <div className="stat-cell">
               <div className="stat-num">
                 3500<span className="plus">+</span>
               </div>
-              <div className="stat-label">гэрээт харилцагч</div>
+              <div className="stat-label">{t.hero.statLabels[2]}</div>
             </div>
           </div>
         </div>
         <div className="hero-media">
-          <div className="media-frame">
-            <span className="ph-eyebrow">Зургийн орон</span>
-            <span className="ph-text">
-              Түгээлтийн машин, агуулах эсвэл хамт олны зураг (3:4)
-            </span>
-          </div>
-          <div className="float-card">
-            <div className="avatars">
-              <span style={{ background: "var(--red)" }} />
-              <span style={{ background: "var(--yellow)" }} />
-              <span style={{ background: "var(--green)" }} />
-              <span style={{ background: "var(--blue)" }} />
-              <span style={{ background: "var(--navy)" }} />
-            </div>
-            <div>
-              <div className="fc-title">Хамт олноороо</div>
-              <div className="fc-sub">Амжилтын оргил дээр тугаа мандуулна</div>
+          <div className="tile-mosaic" role="img" aria-label={t.hero.mediaText}>
+            <div className="tile-grid">
+              <div className="tile pos-corona">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/2.png" alt="" />
+              </div>
+              <div className="tile pos-base">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/3.png" alt="" />
+              </div>
+              <div className="tile pos-yellow">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/4.png" alt="" />
+              </div>
+              <div className="tile pos-randle">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/1.png" alt="" />
+              </div>
+              <div className="tile pos-soft">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/5.png" alt="" />
+              </div>
+              <div className="tile pos-harbin">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/7.png" alt="" />
+              </div>
             </div>
           </div>
         </div>
@@ -134,8 +270,8 @@ export default function Home() {
       {/* ---------- marquee ---------- */}
       <div className="marquee">
         <div className="marquee-track">
-          <MarqueeGroup />
-          <MarqueeGroup ariaHidden />
+          <MarqueeGroup labels={t.marquee} />
+          <MarqueeGroup labels={t.marquee} ariaHidden />
         </div>
       </div>
 
@@ -143,71 +279,24 @@ export default function Home() {
       <section id="about" className="section about">
         <div>
           <div className="eyebrow" style={{ color: "var(--blue)" }}>
-            Бидний тухай
+            {t.about.eyebrow}
           </div>
-          <h2>Арван жилийн тасралтгүй өсөлт</h2>
-          <p className="about-lead">
-            Бид зөвхөн бүтээгдэхүүн нийлүүлдэггүй — аймаг, сум бүрт хүрсэн,
-            найдвартай ажилладаг түгээлтийн сүлжээ бүтээсэн.
-          </p>
+          <h2>{t.about.h2}</h2>
+          <p className="about-lead">{t.about.lead}</p>
         </div>
         <div className="feature-grid">
-          <div className="feature">
-            <div
-              className="badge"
-              style={{ background: "rgba(238,59,99,.12)", color: "var(--red)" }}
-            >
-              1
+          {t.about.features.map((f, i) => (
+            <div className="feature" key={i}>
+              <div
+                className="badge"
+                style={{ background: featureBadges[i].bg, color: featureBadges[i].color }}
+              >
+                {i + 1}
+              </div>
+              <div className="f-title">{f.title}</div>
+              <div className="f-text">{f.text}</div>
             </div>
-            <div className="f-title">Албан ёсны нийлүүлэлт</div>
-            <div className="f-text">
-              Дэлхийн брэндийг албан ёсны эрхтэйгээр чанар стандартын дагуу зах зээлд нийлүүлж байна.
-            </div>
-          </div>
-          <div className="feature">
-            <div
-              className="badge"
-              style={{
-                background: "rgba(251,200,90,.22)",
-                color: "var(--yellow-dk)",
-              }}
-            >
-              2
-            </div>
-            <div className="f-title">Өрсөлдөхүйц үнэ</div>
-            <div className="f-text">
-              Нийлүүлэлтийн үнийг тогтвортойгоор барьж боломжит үнээр үйлчилнэ
-            </div>
-          </div>
-          <div className="feature">
-            <div
-              className="badge"
-              style={{
-                background: "rgba(23,199,154,.16)",
-                color: "var(--green-dk)",
-              }}
-            >
-              3
-            </div>
-            <div className="f-title">Хаа сайгүй хүрдэг сүлжээ</div>
-            <div className="f-text">
-              21 аймаг, 363 сумын гэрээт харилцагчаар дамжуулан хөдөө орон
-              нутгийн хамгийн жижиг дэлгүүрт ч хүргэнэ.
-            </div>
-          </div>
-          <div className="feature">
-            <div
-              className="badge"
-              style={{ background: "rgba(43,134,174,.14)", color: "var(--blue)" }}
-            >
-              4
-            </div>
-            <div className="f-title">Хамтын ажиллагаа</div>
-            <div className="f-text">
-              УБ хотын 9 дүүрэгт 3500+ харилцагчтай урт хугацааны гэрээгээр,
-              харилцан ашигтай ажиллаж байна.
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -216,59 +305,29 @@ export default function Home() {
         <div className="reach-head">
           <div>
             <div className="eyebrow" style={{ color: "var(--green)" }}>
-              Хамрах хүрээ
+              {t.reach.eyebrow}
             </div>
-            <h2>Монгол орон нутгийн хаана ч хүрдэг түгээлт</h2>
+            <h2>{t.reach.h2}</h2>
           </div>
-          <p>
-            Гэрээт харилцагчийн сүлжээгээр дамжуулан жижиглэн худалдааны цэг бүрт
-            бүтээгдэхүүнээ хүргэнэ.
-          </p>
+          <p>{t.reach.para}</p>
         </div>
         <div className="reach-grid">
-          <div className="map-ph">
-            <span className="ph-eyebrow">Зургийн орон</span>
-            <span className="ph-text">
-              Монголын интерактив газрын зураг — аймаг тус бүрийн хамрах хүрээ
-            </span>
+          <div className="reach-map">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/map.jpg" alt={t.reach.mapText} />
           </div>
           <div className="reach-stats">
-            <div className="reach-row">
-              <div>
-                <div className="r-title">Аймаг</div>
-                <div className="r-sub">Бүх аймагт гэрээт харилцагч</div>
+            {t.reach.rows.map((row, i) => (
+              <div className="reach-row" key={i}>
+                <div>
+                  <div className="r-title">{row.title}</div>
+                  <div className="r-sub">{row.sub}</div>
+                </div>
+                <div className="r-num" style={{ color: reachColors[i] }}>
+                  {reachNums[i]}
+                </div>
               </div>
-              <div className="r-num" style={{ color: "var(--yellow)" }}>
-                21
-              </div>
-            </div>
-            <div className="reach-row">
-              <div>
-                <div className="r-title">Сум</div>
-                <div className="r-sub">Тогтмол хүргэлтийн маршрут</div>
-              </div>
-              <div className="r-num" style={{ color: "var(--green)" }}>
-                363
-              </div>
-            </div>
-            <div className="reach-row">
-              <div>
-                <div className="r-title">УБ хотын дүүрэг</div>
-                <div className="r-sub">Өдөр тутмын түгээлт</div>
-              </div>
-              <div className="r-num" style={{ color: "var(--blue)" }}>
-                9
-              </div>
-            </div>
-            <div className="reach-row">
-              <div>
-                <div className="r-title">Гэрээт харилцагч</div>
-                <div className="r-sub">Урт хугацааны хамтын ажиллагаа</div>
-              </div>
-              <div className="r-num" style={{ color: "var(--red)" }}>
-                3500+
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -278,49 +337,21 @@ export default function Home() {
         <div className="section-head brand-head">
           <div>
             <div className="eyebrow" style={{ color: "var(--red)" }}>
-              Бүтээгдэхүүн
+              {t.brands.eyebrow}
             </div>
-            <h2>Нийлүүлдэг брэндүүд</h2>
+            <h2>{t.brands.h2}</h2>
           </div>
           <a href="#contact" className="brand-link">
-            Бүтэн каталог хүсэх →
+            {t.brands.link}
           </a>
         </div>
         <div className="logo-grid">
-          {brandSlots.map((i) => (
-            <div key={i} className="logo-slot">
-              Брэнд лого
+          {brands.map((src, i) => (
+            <div key={src} className="logo-slot">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt={`${t.brands.logoSlot} ${i + 1}`} loading="lazy" />
             </div>
           ))}
-        </div>
-        <div className="cat-grid">
-          <div className="cat-card">
-            <div className="cat-img">Ангиллын зураг</div>
-            <div className="cat-body">
-              <div className="cat-title">test </div>
-              <div className="cat-text">
-                test test test test 
-              </div>
-            </div>
-          </div>
-          <div className="cat-card">
-            <div className="cat-img">Ангиллын зураг</div>
-            <div className="cat-body">
-              <div className="cat-title">test</div>
-              <div className="cat-text">
-                test test test test test test
-              </div>
-            </div>
-          </div>
-          <div className="cat-card">
-            <div className="cat-img">Ангиллын зураг</div>
-            <div className="cat-body">
-              <div className="cat-title">test </div>
-              <div className="cat-text">
-                test test test test test test test 
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -329,46 +360,40 @@ export default function Home() {
         <div className="values-grid">
           <div>
             <div className="eyebrow" style={{ color: "var(--blue)" }}>
-              Алсын хараа
+              {t.values.eyebrow}
             </div>
-            <h2>
-              «Амжилтын оргил дээр тугаа мандуулна, хамт олноороо.»
-            </h2>
+            <h2>{t.values.h2}</h2>
             <div className="swatch-row">
               <span className="sw" style={{ background: "var(--red)" }} />
               <span className="sw" style={{ background: "var(--yellow)" }} />
               <span className="sw" style={{ background: "var(--green)" }} />
               <span className="sw" style={{ background: "var(--blue)" }} />
               <span className="sw" style={{ background: "var(--navy)" }} />
-              <span className="sw-label">Таван хүчин зүйл, нэг хамт олон</span>
+              <span className="sw-label">{t.values.swatchLabel}</span>
             </div>
           </div>
           <div className="value-cards">
             <div className="value-card">
               <div className="vc-eyebrow" style={{ color: "var(--red)" }}>
-                Эрхэм зорилго
+                {t.values.missionEyebrow}
               </div>
-              <div className="vc-lead">
-                Дэлхийн чанартай бүтээгдэхүүнийг Монголын хэрэглэгч бүрт
-                хүртээмжтэй үнээр хүргэх.
-              </div>
+              <div className="vc-lead">{t.values.missionLead}</div>
             </div>
             <div className="value-card">
               <div className="vc-eyebrow" style={{ color: "var(--green-dk)" }}>
-                Үнэт зүйл
+                {t.values.valuesEyebrow}
               </div>
               <div className="value-list">
-                <div>Шударга байдал</div>
-                <div>Хамтын хүч</div>
-                <div>Хариуцлага</div>
-                <div>Тасралтгүй хөгжил</div>
+                {t.values.valuesList.map((v, i) => (
+                  <div key={i}>{v}</div>
+                ))}
               </div>
             </div>
             <div className="value-card dark">
               <div className="vc-eyebrow" style={{ color: "var(--yellow)" }}>
-                Уриа
+                {t.values.mottoEyebrow}
               </div>
-              <div className="vc-slogan">Хамтдаа урагш — Agar United</div>
+              <div className="vc-slogan">{t.values.mottoSlogan}</div>
             </div>
           </div>
         </div>
@@ -379,50 +404,25 @@ export default function Home() {
         <div className="section-head" style={{ marginBottom: 40 }}>
           <div>
             <div className="eyebrow" style={{ color: "var(--yellow-dk)" }}>
-              Хамтран ажиллах
+              {t.partner.eyebrow}
             </div>
-            <h2>Гэрээт харилцагч болох 4 хялбар алхам</h2>
+            <h2>{t.partner.h2}</h2>
           </div>
         </div>
         <div className="steps-grid">
-          <div className="step" style={{ borderTop: "3px solid var(--red)" }}>
-            <div className="s-num" style={{ color: "var(--red)" }}>
-              Алхам 01
+          {t.partner.steps.map((step, i) => (
+            <div
+              className="step"
+              key={i}
+              style={{ borderTop: `3px solid ${stepColors[i]}` }}
+            >
+              <div className="s-num" style={{ color: stepNumColors[i] }}>
+                {step.label}
+              </div>
+              <div className="s-title">{step.title}</div>
+              <div className="s-text">{step.text}</div>
             </div>
-            <div className="s-title">Хүсэлт гаргах</div>
-            <div className="s-text">
-              Онлайн формоор эсвэл дугаараар холбогдож үйл ажиллагаагаа
-              танилцуулна.
-            </div>
-          </div>
-          <div className="step" style={{ borderTop: "3px solid var(--yellow)" }}>
-            <div className="s-num" style={{ color: "var(--yellow-dk)" }}>
-              Алхам 02
-            </div>
-            <div className="s-title">Хамрах хүрээ тодорхойлох</div>
-            <div className="s-text">
-              Орон нутаг, худалдааны цэгийн тоо, бүтээгдэхүүний ангиллыг тохирно.
-            </div>
-          </div>
-          <div className="step" style={{ borderTop: "3px solid var(--green)" }}>
-            <div className="s-num" style={{ color: "var(--green-dk)" }}>
-              Алхам 03
-            </div>
-            <div className="s-title">Гэрээ байгуулах</div>
-            <div className="s-text">
-              Үнийн бүтэц, төлбөрийн нөхцөл, хүргэлтийн хуваарийг гэрээнд тусгана.
-            </div>
-          </div>
-          <div className="step" style={{ borderTop: "3px solid var(--blue)" }}>
-            <div className="s-num" style={{ color: "var(--blue)" }}>
-              Алхам 04
-            </div>
-            <div className="s-title">Тогтмол нийлүүлэлт</div>
-            <div className="s-text">
-              Хуваарийн дагуу хүргэлт, борлуулалтын дэмжлэг, сурталчилгааны
-              материал.
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -430,31 +430,58 @@ export default function Home() {
       <section id="contact" className="contact">
         <div className="contact-card">
           <div>
-            <h2>Хамтдаа өсөх бэлэн үү?</h2>
-            <p className="c-lead">
-              Гэрээт харилцагчийн сүлжээнд нэгдэх, бүтээгдэхүүний каталог болон
-              үнийн санал хүсэх.
-            </p>
+            <h2>{t.contact.h2}</h2>
+            <p className="c-lead">{t.contact.lead}</p>
             <div className="contact-info">
               <div>
-                <div className="ci-label">Утас</div>
-                <div className="ci-value">+976 7000 0000</div>
+                <div className="ci-label">{t.contact.phoneLabel}</div>
+                <a className="ci-value" href={telHref}>
+                  {t.contact.phone}
+                </a>
               </div>
               <div>
-                <div className="ci-label">И-мэйл</div>
-                <div className="ci-value">info@agarunited.mn</div>
+                <div className="ci-label">{t.contact.emailLabel}</div>
+                <a className="ci-value" href={mailHref}>
+                  {t.contact.email}
+                </a>
               </div>
             </div>
           </div>
-          <form className="contact-form">
+          <form className="contact-form" onSubmit={handleContactSubmit}>
             <div className="form-row">
-              <input className="field" placeholder="Байгууллагын нэр" />
-              <input className="field" placeholder="Аймаг / дүүрэг" />
+              <input
+                className="field"
+                name="company"
+                placeholder={t.contact.phCompany}
+                value={form.company}
+                onChange={(e) => setForm({ ...form, company: e.target.value })}
+                required
+              />
+              <input
+                className="field"
+                name="region"
+                placeholder={t.contact.phRegion}
+                value={form.region}
+                onChange={(e) => setForm({ ...form, region: e.target.value })}
+              />
             </div>
-            <input className="field" placeholder="Холбоо барих дугаар" />
-            <textarea className="field" placeholder="Хүсэлтийн дэлгэрэнгүй…" />
-            <button type="button" className="form-submit">
-              Хүсэлт илгээх
+            <input
+              className="field"
+              name="phone"
+              placeholder={t.contact.phPhone}
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              required
+            />
+            <textarea
+              className="field"
+              name="details"
+              placeholder={t.contact.phDetails}
+              value={form.details}
+              onChange={(e) => setForm({ ...form, details: e.target.value })}
+            />
+            <button type="submit" className="form-submit">
+              {t.contact.submit}
             </button>
           </form>
         </div>
@@ -467,45 +494,42 @@ export default function Home() {
             <div className="footer-logo-wrap">
               <div className="footer-logo" role="img" aria-label="Agar United" />
             </div>
-            <p>
-              2016 оноос хойш дэлхийн брэнд бүтээгдэхүүнийг Монголын зах зээлд
-              нийлүүлж байна.
-            </p>
+            <p>{t.footer.brandText}</p>
           </div>
           <div className="footer-col">
             <div className="fc-head" style={{ color: "var(--yellow)" }}>
-              Компани
+              {t.footer.col1Head}
             </div>
             <div className="fc-links">
-              <a href="#about">Бидний тухай</a>
-              <a href="#values">Алсын хараа</a>
-              <a href="#partner">Хамтран ажиллах</a>
+              <a href="#about">{t.footer.col1Links[0]}</a>
+              <a href="#values">{t.footer.col1Links[1]}</a>
+              <a href="#partner">{t.footer.col1Links[2]}</a>
             </div>
           </div>
           <div className="footer-col">
             <div className="fc-head" style={{ color: "var(--green)" }}>
-              Бүтээгдэхүүн
+              {t.footer.col2Head}
             </div>
             <div className="fc-links">
-              <a href="#brands">Хүнс & ундаа</a>
-              <a href="#brands">Гоо сайхан</a>
-              <a href="#brands">Ахуйн хэрэглээ</a>
+              <a href="#brands">{t.footer.col2Links[0]}</a>
+              <a href="#brands">{t.footer.col2Links[1]}</a>
+              <a href="#brands">{t.footer.col2Links[2]}</a>
             </div>
           </div>
           <div className="footer-col">
             <div className="fc-head" style={{ color: "var(--red)" }}>
-              Холбоо барих
+              {t.footer.col3Head}
             </div>
             <div className="fc-links">
-              <span>Улаанбаатар, Монгол</span>
-              <span>+976 7000 0000</span>
-              <span>info@agarunited.mn</span>
+              <span>{t.footer.city}</span>
+              <a href={telHref}>{t.contact.phone}</a>
+              <a href={mailHref}>{t.contact.email}</a>
             </div>
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© 2026 Agar United LLC. Бүх эрх хуулиар хамгаалагдсан.</span>
-          <span>Амжилтын оргил дээр тугаа мандуулна, хамт олноороо.</span>
+          <span>{t.footer.copyright}</span>
+          <span>{t.footer.tagline}</span>
         </div>
       </footer>
     </div>

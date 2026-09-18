@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #f5f4f0;
+  --cream: #ffffff;
   --panel: #edebe5;
   --navy: #0f3552;
   --ink: #10222e;
@@ -126,6 +126,44 @@ a {
   font-size: 13px;
   font-weight: 600;
   color: var(--ink-3);
+}
+
+/* ---------- language switch ---------- */
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.lang-switch button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  padding: 2px 4px;
+  border-radius: 6px;
+  color: var(--ink-3);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.lang-switch button:hover {
+  color: var(--navy);
+}
+.lang-switch button.active {
+  color: var(--navy);
+  background: var(--panel);
+}
+.lang-switch .sep {
+  color: var(--line);
+}
+/* цэсэн доторх хэл сонголт */
+.nav-toggle-lang.lang-switch {
+  justify-content: flex-start;
+  gap: 6px;
+}
+.nav-toggle-lang.lang-switch button {
+  padding: 6px 10px;
+  font-size: 14px;
 }
 
 .btn {
@@ -273,7 +311,7 @@ a {
 /* ---------- hero ---------- */
 .hero {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: 1fr 1.05fr;
   border-bottom: 1px solid var(--line);
 }
 .hero-copy {
@@ -359,41 +397,107 @@ a {
 
 .hero-media {
   position: relative;
-  border-left: 1px solid var(--line);
-  background: var(--panel);
+  background: transparent;
   min-height: 620px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px;
+  padding: 0;
 }
-.media-frame {
+/* ---------- hero диамонд мозайк (тессаллаци) ---------- */
+.tile-mosaic {
   position: absolute;
-  inset: 32px;
-  border: 1.5px dashed rgba(15, 53, 82, 0.28);
-  border-radius: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  text-align: center;
-  padding: 24px;
+  inset: 0;
+  overflow: hidden;
 }
-.media-frame .ph-eyebrow {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--navy);
-  opacity: 0.6;
+.tile-grid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  aspect-ratio: 1 / 1;
+  container-type: size;
 }
-.media-frame .ph-text {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink-2);
-  max-width: 260px;
-  line-height: 1.5;
+.tile {
+  position: absolute;
+  width: 70cqw;
+  aspect-ratio: 1 / 1;
+  opacity: 0;
+  animation: tileFade 0.7s ease forwards, tileFloat 7s ease-in-out infinite;
+}
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.3s ease;
+}
+.tile:hover {
+  z-index: 10;
+}
+.tile:hover img {
+  transform: scale(1.05);
+}
+
+/* байрлал — ромб тессаллаци (reference-ийн дагуу) */
+.pos-corona {
+  left: -25cqw;
+  top: -22cqw;
+  z-index: 3;
+  animation-delay: 0s, 0s;
+}
+.pos-base {
+  left: 49cqw;
+  top: -22cqw;
+  z-index: 3;
+  animation-delay: 0.1s, 1.2s;
+}
+.pos-yellow {
+  left: 86cqw;
+  top: 15cqw;
+  z-index: 2;
+  animation-delay: 0.2s, 0.6s;
+}
+.pos-randle {
+  left: -25cqw;
+  top: 52cqw;
+  z-index: 3;
+  animation-delay: 0.3s, 1.8s;
+}
+.pos-soft {
+  left: 49cqw;
+  top: 52cqw;
+  z-index: 4;
+  animation-delay: 0.4s, 1s;
+}
+.pos-harbin {
+  left: 12cqw;
+  top: 15cqw;
+  z-index: 6;
+  animation-delay: 0.15s, 2.2s;
+}
+
+@keyframes tileFade {
+  to {
+    opacity: 1;
+  }
+}
+@keyframes tileFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile {
+    animation: tileFade 0.5s ease forwards;
+    opacity: 1;
+  }
 }
 .float-card {
   position: absolute;
@@ -578,32 +682,22 @@ section[id] {
   margin-top: 44px;
   align-items: stretch;
 }
-.map-ph {
-  border: 1.5px dashed rgba(255, 255, 255, 0.32);
+.reach-map {
   border-radius: 20px;
   min-height: 400px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  text-align: center;
-  padding: 28px;
-  background: rgba(255, 255, 255, 0.04);
+  padding: 24px;
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  overflow: hidden;
 }
-.map-ph .ph-eyebrow {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
-}
-.map-ph .ph-text {
-  font-size: 16px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-  max-width: 300px;
-  line-height: 1.5;
+.reach-map img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
 }
 .reach-stats {
   display: flex;
@@ -655,22 +749,25 @@ section[id] {
 }
 .logo-slot {
   aspect-ratio: 3 / 2;
-  border: 1.5px dashed rgba(15, 53, 82, 0.22);
+  border: 1px solid var(--line);
   border-radius: 12px;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: rgba(15, 53, 82, 0.45);
-  text-align: center;
-  padding: 10px;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  padding: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+.logo-slot img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 .logo-slot:hover {
-  border-color: var(--red);
-  color: var(--red);
+  border-color: rgba(238, 59, 99, 0.5);
+  box-shadow: 0 8px 20px rgba(15, 53, 82, 0.08);
+  transform: translateY(-2px);
 }
 .cat-grid {
   display: grid;
@@ -1058,10 +1155,10 @@ textarea.field {
   }
   .hero-media {
     padding: 18px;
-    min-height: 320px;
+    min-height: 420px;
   }
-  .media-frame {
-    inset: 18px;
+  .tile-mosaic {
+    inset: 12px;
   }
   .float-card {
     left: 12px;
